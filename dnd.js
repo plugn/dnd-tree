@@ -44,15 +44,20 @@ function onDragStart(e) {
 	ghostEl = getGhost();
 
 	e.dataTransfer.setData('text/plain', '');
+	// e.dataTransfer.setDragImage(ghostEl, 10, 10);
 	console.log('dragstart', e.target.dataset.value);
+
 }
 
 function getGhost() {
 	if (!dragged) { return; }
-	if (ghostEl) { return ghostEl; }
 
 	ghostEl = dragged.cloneNode(true);
-	ghostEl.draggable = null;
+	// ghostEl = document.createElement(dragged.tagName);
+	// ghostEl.dataset.value = dragged.dataset.value;
+	// ghostEl.className = 'ghost';
+	// ghostEl.innerHTML = '' + dragged.innerHTML;
+	ghostEl.draggable = false;
 	ghostEl.style.opacity = '0.5';
 
 	return ghostEl;
@@ -65,9 +70,13 @@ function onDragOver(e) {
 	e.preventDefault();
 
 	if (e.target.draggable) {
-		if (!dragged || !_.get(e, 'target.parentNode')) { return; }
+		if (!dragged || !(e.target.parentNode)) { return; }
 		var refNode = findRefNode(e);
-		e.target.parentNode.insertBefore(ghostEl, refNode);//     e.target.parentNode.insertBefore(getGhost(), e.target);
+		// try {
+		if (!ghostEl.contains(e.target.parentNode)) {
+			e.target.parentNode.insertBefore(ghostEl, refNode);//     e.target.parentNode.insertBefore(getGhost(), e.target);
+		}
+		// } catch (error) { console.log('(!) ', error);}
 	}
 }
 
@@ -77,7 +86,7 @@ function onDragEnd(e) {
 		ghostEl.parentNode.removeChild(ghostEl);
 	}
 	dragged = null;
-	// ghostEl = null;
+	ghostEl = null;
 }
 
 function onDrop(e) {
@@ -85,7 +94,7 @@ function onDrop(e) {
 	// from: id, parentId
 	// to: [ parentId? ]id
 
-	console.log('onDrop dragged:', dragged.dataset.value, dragged);
+	console.log('onDrop dragged:', dragged.dataset.value, dragged, '>', e.target);
 	if (!e.target.dataset.value) {
 		var parentLi = e.target.closest('li'),
 			ul = parentLi && parentLi.querySelector('ul');
@@ -100,11 +109,9 @@ function onDrop(e) {
 }
 
 function afterDrag() {
-/*
 	if (ghostEl && ghostEl.parentNode) {
 		 ghostEl.parentNode.removeChild(ghostEl);
 	}
-*/
 	ghostEl = null;
 	dragged = null;
 }
@@ -122,16 +129,15 @@ function findRefNode(e) {
 // onDragEnter, onDragLeave
 
 function calcPos(e) {
-	var ghost = getGhost();
-	var targetIndex = ghost && getItemIndex(ghost);
+	var targetIndex = ghostEl && getItemIndex(ghostEl);
 	console.log('calcPos() targetIndex', targetIndex,
-		getList(e.target).map(
-			function(el) { return el.dataset.value
-		})
+		getList(e.target).map( function(el) { return el.dataset.value; })
 	);
 }
 
 function getList(el) {
+	console.log('getList', el, el.parentNode);
+	
 	return listFn(el.parentNode.childNodes, 'filter', function(node){
 		return node.tagName;
 	});
