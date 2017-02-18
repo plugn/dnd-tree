@@ -46,7 +46,6 @@ function onDragStart(e) {
 	e.dataTransfer.setData('text/plain', '');
 	// e.dataTransfer.setDragImage(ghostEl, 10, 10);
 	console.log('dragstart', e.target.dataset.value);
-
 }
 
 function getGhost() {
